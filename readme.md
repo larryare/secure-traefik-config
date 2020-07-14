@@ -1,4 +1,4 @@
-# Secure Traefic configuration
+# Secure Traefik configuration
 
 ## What is this?
 
