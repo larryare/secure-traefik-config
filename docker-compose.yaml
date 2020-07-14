@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:2.2
+    environment:
+      - DO_AUTH_TOKEN=$DO_AUTH_TOKEN
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./acme.json:/acme.json
+      - ./traefik.yaml:/traefik.yaml:ro
+      - ./dynamic.yaml:/etc/traefik/dynamic.yaml
+    labels: 
+      - traefik.enable=true
+      # API routing
+      - traefik.http.routers.api.rule=Host(`traefik.$MY_DOMAIN`)
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.tls.certresolver=le
+      - traefik.http.routers.api.service=api@internal
+      - traefik.http.routers.api.middlewares=auth
+      - traefik.http.middlewares.auth.basicauth.users=$USER_NAME:$USER_PASSWD
+      # DNS Challenge
+      - traefik.http.routers.traefik.tls.certresolver=le
+      - traefik.http.routers.traefik.tls.domains[0].main=*.$MY_DOMAIN
+      - traefik.http.routers.traefik.tls.domains[0].sans=$MY_DOMAIN
+
+  portainer:
+    image: portainer/portainer
+    container_name: portainer
+    restart: 'no'
+    command: --tlsverify
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.portainer.rule=Host(`portainer.$MY_DOMAIN`)
+      - traefik.http.routers.portainer.entrypoints=websecure
+      - traefik.http.routers.portainer.tls.certresolver=le
+
+  db:
+    image: mariadb:10.5.4-focal
+    container_name: wpdb
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: $WORDPRESS_DB_NAME
+      MYSQL_USER: $WORDPRESS_DB_USER
+      MYSQL_PASSWORD: $WORDPRESS_DB_PASSWORD
+
+  wordpress:
+    container_name: wordpress
+    depends_on:
+      - db
+    image: wordpress:latest
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: $WORDPRESS_DB_USER
+      WORDPRESS_DB_PASSWORD: $WORDPRESS_DB_PASSWORD
+      WORDPRESS_DB_NAME: $WORDPRESS_DB_NAME
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.wordpress.rule=Host(`$MY_DOMAIN`)
+      - traefik.http.routers.wordpress.tls.certresolver=le
+      - traefik.http.routers.wordpress.entrypoints=websecure
+      - traefik.http.routers.wordpress.middlewares=secHeaders@file
+
+volumes:
+  portainer_data:
+  db_data: {}
