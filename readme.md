@@ -22,6 +22,10 @@ touch /acme.json \ && chmod 600 /acme.json
 
 5. Idk profit maybe???
 
+## Javascript doesn't work!!??
+
+Remove `ContentSecurityPolicy` line from [dynamic.yaml] and you're good to go!
+
 ## Why?
 
 I took way too long to do this right. Some say that Traefik documentation is great, though it was really confusing for me. Use this repo as a reference.
