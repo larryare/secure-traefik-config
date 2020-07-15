@@ -24,7 +24,7 @@ touch /acme.json \ && chmod 600 /acme.json
 
 ## Javascript doesn't work!!??
 
-Remove `ContentSecurityPolicy` line from [dynamic.yaml] and you're good to go!
+Remove `contentSecurityPolicy` line from [dynamic.yaml] and you're good to go!
 
 ## Why?
 
