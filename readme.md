@@ -8,7 +8,7 @@ A simple Traefik configuration with SSL using ACME and Digitalocean DNS. It also
 
 1. Create acme.json and give permissions
 ```sh
-touch /acme.json \ && chmod 600 /acme.json
+touch acme.json \ && chmod 600 /acme.json
 ```
 2. Create .env
 
